@@ -55,242 +55,273 @@ html, body {
   Tone.Buffer.onload = function(){
     console.log("loaded");
     sampler.triggerAttack("samples.intro");
-    
-
-  };
-
-  Tone.Buffer.onprogress = function(progress){
-    console.log("progress", progress);
-  };
 
 
-  var w = window,
-    d = document,
-    e = d.documentElement,
-    g = d.getElementsByTagName('body')[0],
-    width = w.innerWidth || e.clientWidth || g.clientWidth,
-    height = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    var w = window,
+      d = document,
+      e = d.documentElement,
+      g = d.getElementsByTagName('body')[0],
+      width = w.innerWidth || e.clientWidth || g.clientWidth,
+      height = w.innerHeight|| e.clientHeight|| g.clientHeight;
 
 
-  var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+    var svg = d3.select("body").append("svg")
+      .attr("width", width)
+      .attr("height", height);
 
-  function updateWindow(){
-    x = w.innerWidth || e.clientWidth || g.clientWidth;
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-    
-    svg.attr("width", x).attr("height", y);
-  }
-  window.onresize = updateWindow;
+    function updateWindow(){
+      x = w.innerWidth || e.clientWidth || g.clientWidth;
+      y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+      
+      svg.attr("width", x).attr("height", y);
+    }
+    window.onresize = updateWindow;
 
-  svg.append("rect")
-    .attr("width", "100%")
-    .attr("height", "100%")
-    .attr("fill", "#20007a");
+    svg.append("rect")
+      .attr("width", "100%")
+      .attr("height", "100%")
+      .attr("fill", "#20007a");
 
-  d3.json("nyc.json", function(error, nyb) {
+    d3.json("nyc.json", function(error, nyb) {
 
-    //console.log(nyb)
+      //console.log(nyb)
 
-    var projection = d3.geo.mercator()
-                    //.center([-73.94, 40.70])
-                    //.scale(50000)
-                    .center([-73.98, 40.72])
-                    .scale(300000)
-                    .translate([(width) / 2, (height)/2]);
+      var projection = d3.geo.mercator()
+                      //.center([-73.94, 40.70])
+                      //.scale(50000)
+                      .center([-73.98, 40.72])
+                      .scale(300000)
+                      .translate([(width) / 2, (height)/2]);
 
-    var path = d3.geo.path()
-            .projection(projection);
+      var path = d3.geo.path()
+              .projection(projection);
 
-    var g = svg.append("g");
+      var g = svg.append("g");
 
-    g.append("g")
-        .attr("id", "boroughs")
-        .selectAll(".state")
-        .data(nyb.features)
-        .enter().append("path")
-        .attr("class", function(d){ return d.properties.name; })
-        .attr("d", path);
+      g.append("g")
+          .attr("id", "boroughs")
+          .selectAll(".state")
+          .data(nyb.features)
+          .enter().append("path")
+          .attr("class", function(d){ return d.properties.name; })
+          .attr("d", path);
 
-      var text = svg.append("svg:text")
-          .attr("x", 20)
-          .attr("y", 20);
+        var start = Date.now(),
+            frames = 0;
 
-      var start = Date.now(),
-          frames = 0;
+        var current_time = new Date("2014-07-01 7:00");
+        var current_timestamp = current_time.getTime();
 
-      var current_time = new Date("2014-07-01 0:00");
-      var current_timestamp = current_time.getTime();
+        var millisecond = 100000;
+        //var stations = new Array();
 
-      var millisecond = 100000;
-      //var stations = new Array();
+        d3.timer(function() 
+        {
 
-      d3.timer(function() 
-      {
+          // Update the FPS meter.
+          var now = Date.now(), duration = now - start;
+          //text.text(~~(++frames * 1000 / duration));
+          if(duration >= 1000) {
+            current_timestamp += millisecond;
+            var datesplice = new Date(current_timestamp);
+            frames = 0;
+            start = now;
+            $.ajax({
+              type: "GET",
+              url: "http://localhost:3012/trip/" + datesplice.format("m-d-yy H:MM").toString(),
+              dataType: "json"
+            }).done (function (data) {
 
-        // Update the FPS meter.
-        var now = Date.now(), duration = now - start;
-        //text.text(~~(++frames * 1000 / duration));
-        if(duration >= 1000) {
-          current_timestamp += millisecond;
-          var datesplice = new Date(current_timestamp);
-          frames = 0;
-          start = now;
-          $.ajax({
-            type: "GET",
-            url: "http://localhost:3012/trip/" + datesplice.format("m-d-yy H:MM").toString(),
-            dataType: "json"
-          }).done (function (data) {
+              if(data) {
+                var blips = [];
+                var num_blips = Object.keys(data).length;
+                console.log(num_blips);
+                $.each(data, function(index, value) {
+                    blips.push(JSON.parse(value));
+                }); 
+                //stations.push(JSON.parse(data));
+                var circle = svg.selectAll("circle")
+                .data(blips)//need to put it in an array?
+              .enter().append("svg:circle")
+                .attr("r", 1)
+                .attr("fill","#eb1e32")
+                .attr("opacity","1")
 
-            var blips = [];
-            $.each(data, function(index, value) {
-                blips.push(JSON.parse(value));
-            }); 
-            if(data) {
-              //stations.push(JSON.parse(data));
-              var circle = svg.selectAll("circle")
-              .data(blips)//need to put it in an array?
-            .enter().append("svg:circle")
-              .attr("r", 1)
-              .attr("fill","#eb1e32")
-              .attr("opacity","1")
+                var start_blip = Date.now();
+                if (num_blips < 1){
 
-              var start_blip = Date.now();
-              d3.timer(function() 
-              {
-                var blip_now = Date.now(), blip_duration = blip_now - start_blip;
-                circle
-                .attr("cx", function(d) {point = projection([d.longitude,d.latitude]); return point[0] })
-                .attr("cy", function(d) {point = projection([d.longitude,d.latitude]); return point[1] })
-                .attr("r",function(d)
-                {
-                  return (d.y < 1000) ? d3.select(this).attr("r") : blip_duration/100;
-                });
-                if (blip_duration > 1000) {
-                  circle.remove()
-                  return true;
+                } else if(num_blips < 32) {
+                  sampler.triggerAttackRelease("samples.bass1",1);
+                  sampler.triggerAttackRelease("samples.field1",1);
+                  sampler.triggerAttackRelease("samples.field2",1);
+                  sampler.triggerAttackRelease("samples.hat1",1);
+                  sampler.triggerAttackRelease("samples.kick1",1);
+                  sampler.triggerAttackRelease("samples.synth1",1);
+                } else if (num_blips >= 32 && num_blips < 50) {
+                  sampler.triggerAttackRelease("samples.bass2",1);
+                  sampler.triggerAttackRelease("samples.arp1",1);
+                  sampler.triggerAttackRelease("samples.hat2",1);
+                  sampler.triggerAttackRelease("samples.kick2",1);
+                  sampler.triggerAttackRelease("samples.synth1",1);
+                  sampler.triggerAttackRelease("samples.synth2",1);
+                  sampler.triggerAttackRelease("samples.boop1",1);
+                  sampler.triggerAttackRelease("samples.field1",1);
+                  sampler.triggerAttackRelease("samples.field2",1);
+                  sampler.triggerAttackRelease("samples.switch2",1);
+                } else if (num_blips >= 50) {
+                  sampler.triggerAttackRelease("samples.synth1",1);
+                  sampler.triggerAttackRelease("samples.synth2",1);
+                  sampler.triggerAttackRelease("samples.synth3",1);
+                  sampler.triggerAttackRelease("samples.synth4",1);
+                  sampler.triggerAttackRelease("samples.hat3",1);
+                  sampler.triggerAttackRelease("samples.boop1",1);
+                  sampler.triggerAttackRelease("samples.field1",1);
+                  sampler.triggerAttackRelease("samples.field2",1);
+                  sampler.triggerAttackRelease("samples.arp1",1);
+                  sampler.triggerAttackRelease("samples.arp2",1);
+                  sampler.triggerAttackRelease("samples.switch1",1);
+                  sampler.triggerAttackRelease("samples.switch2",1);
                 }
-              });
-          }
-        });
-      }
+                d3.timer(function() 
+                {
+                  var blip_now = Date.now(), blip_duration = blip_now - start_blip;
+                  circle
+                  .attr("cx", function(d) {point = projection([d.longitude,d.latitude]); return point[0] })
+                  .attr("cy", function(d) {point = projection([d.longitude,d.latitude]); return point[1] })
+                  .attr("r",function(d)
+                  {
+                    return (d.y < 1000) ? d3.select(this).attr("r") : blip_duration/100;
+                  });
+                  if (blip_duration > 1000) {
+                    circle.remove()
+                    return true;
+                  }
+                });
+            }
+          });
+        }
+      });
+    
     });
-  
-  });
 
-  var dateFormat = function () {
-    var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
-        timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
-        timezoneClip = /[^-+\dA-Z]/g,
-        pad = function (val, len) {
-            val = String(val);
-            len = len || 2;
-            while (val.length < len) val = "0" + val;
-            return val;
-        };
+}
 
-    // Regexes and supporting functions are cached through closure
-    return function (date, mask, utc) {
-        var dF = dateFormat;
+Tone.Buffer.onprogress = function(progress){
+    //console.log("progress", progress);
+  };
 
-        // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
-        if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
-            mask = date;
-            date = undefined;
-        }
+var dateFormat = function () {
+  var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+      timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+      timezoneClip = /[^-+\dA-Z]/g,
+      pad = function (val, len) {
+          val = String(val);
+          len = len || 2;
+          while (val.length < len) val = "0" + val;
+          return val;
+      };
 
-        // Passing date through Date applies Date.parse, if necessary
-        date = date ? new Date(date) : new Date;
-        if (isNaN(date)) throw SyntaxError("invalid date");
+  // Regexes and supporting functions are cached through closure
+  return function (date, mask, utc) {
+      var dF = dateFormat;
 
-        mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+      // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+      if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
+          mask = date;
+          date = undefined;
+      }
 
-        // Allow setting the utc argument via the mask
-        if (mask.slice(0, 4) == "UTC:") {
-            mask = mask.slice(4);
-            utc = true;
-        }
+      // Passing date through Date applies Date.parse, if necessary
+      date = date ? new Date(date) : new Date;
+      if (isNaN(date)) throw SyntaxError("invalid date");
 
-        var _ = utc ? "getUTC" : "get",
-            d = date[_ + "Date"](),
-            D = date[_ + "Day"](),
-            m = date[_ + "Month"](),
-            y = date[_ + "FullYear"](),
-            H = date[_ + "Hours"](),
-            M = date[_ + "Minutes"](),
-            s = date[_ + "Seconds"](),
-            L = date[_ + "Milliseconds"](),
-            o = utc ? 0 : date.getTimezoneOffset(),
-            flags = {
-                d:    d,
-                dd:   pad(d),
-                ddd:  dF.i18n.dayNames[D],
-                dddd: dF.i18n.dayNames[D + 7],
-                m:    m + 1,
-                mm:   pad(m + 1),
-                mmm:  dF.i18n.monthNames[m],
-                mmmm: dF.i18n.monthNames[m + 12],
-                yy:   String(y).slice(2),
-                yyyy: y,
-                h:    H % 12 || 12,
-                hh:   pad(H % 12 || 12),
-                H:    H,
-                HH:   pad(H),
-                M:    M,
-                MM:   pad(M),
-                s:    s,
-                ss:   pad(s),
-                l:    pad(L, 3),
-                L:    pad(L > 99 ? Math.round(L / 10) : L),
-                t:    H < 12 ? "a"  : "p",
-                tt:   H < 12 ? "am" : "pm",
-                T:    H < 12 ? "A"  : "P",
-                TT:   H < 12 ? "AM" : "PM",
-                Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
-                o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
-                S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
-            };
+      mask = String(dF.masks[mask] || mask || dF.masks["default"]);
 
-        return mask.replace(token, function ($0) {
-            return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
-        });
-    };
+      // Allow setting the utc argument via the mask
+      if (mask.slice(0, 4) == "UTC:") {
+          mask = mask.slice(4);
+          utc = true;
+      }
+
+      var _ = utc ? "getUTC" : "get",
+          d = date[_ + "Date"](),
+          D = date[_ + "Day"](),
+          m = date[_ + "Month"](),
+          y = date[_ + "FullYear"](),
+          H = date[_ + "Hours"](),
+          M = date[_ + "Minutes"](),
+          s = date[_ + "Seconds"](),
+          L = date[_ + "Milliseconds"](),
+          o = utc ? 0 : date.getTimezoneOffset(),
+          flags = {
+              d:    d,
+              dd:   pad(d),
+              ddd:  dF.i18n.dayNames[D],
+              dddd: dF.i18n.dayNames[D + 7],
+              m:    m + 1,
+              mm:   pad(m + 1),
+              mmm:  dF.i18n.monthNames[m],
+              mmmm: dF.i18n.monthNames[m + 12],
+              yy:   String(y).slice(2),
+              yyyy: y,
+              h:    H % 12 || 12,
+              hh:   pad(H % 12 || 12),
+              H:    H,
+              HH:   pad(H),
+              M:    M,
+              MM:   pad(M),
+              s:    s,
+              ss:   pad(s),
+              l:    pad(L, 3),
+              L:    pad(L > 99 ? Math.round(L / 10) : L),
+              t:    H < 12 ? "a"  : "p",
+              tt:   H < 12 ? "am" : "pm",
+              T:    H < 12 ? "A"  : "P",
+              TT:   H < 12 ? "AM" : "PM",
+              Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+              o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+              S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+          };
+
+      return mask.replace(token, function ($0) {
+          return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+      });
+  };
 }();
 
 // Some common format strings
 dateFormat.masks = {
-    "default":      "ddd mmm dd yyyy HH:MM:ss",
-    shortDate:      "m/d/yy",
-    mediumDate:     "mmm d, yyyy",
-    longDate:       "mmmm d, yyyy",
-    fullDate:       "dddd, mmmm d, yyyy",
-    shortTime:      "h:MM TT",
-    mediumTime:     "h:MM:ss TT",
-    longTime:       "h:MM:ss TT Z",
-    isoDate:        "yyyy-mm-dd",
-    isoTime:        "HH:MM:ss",
-    isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
-    isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+  "default":      "ddd mmm dd yyyy HH:MM:ss",
+  shortDate:      "m/d/yy",
+  mediumDate:     "mmm d, yyyy",
+  longDate:       "mmmm d, yyyy",
+  fullDate:       "dddd, mmmm d, yyyy",
+  shortTime:      "h:MM TT",
+  mediumTime:     "h:MM:ss TT",
+  longTime:       "h:MM:ss TT Z",
+  isoDate:        "yyyy-mm-dd",
+  isoTime:        "HH:MM:ss",
+  isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+  isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
 };
 
 // Internationalization strings
 dateFormat.i18n = {
-    dayNames: [
-        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
-        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-    ],
-    monthNames: [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
-    ]
+  dayNames: [
+      "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+      "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+  ],
+  monthNames: [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+  ]
 };
 
 // For convenience...
 Date.prototype.format = function (mask, utc) {
-    return dateFormat(this, mask, utc);
+  return dateFormat(this, mask, utc);
 };
 
-  </script>
+</script>
 </body>
 </html>
