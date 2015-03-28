@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style>
+#boroughs {
+  stroke: #bdc3c7;
+  stroke-width: 2px;
+  fill: #2c3e50;
+}
+</style>
+
+<script src="d3.min.js" charset="utf-8"></script>
+<script src="jquery-1.11.2.min.js" charset="utf-8"></script>
+
+<body>
+
+  <script>
+
+  var width = 960,
+     height = 500;
+
+  var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  d3.json("nyc.json", function(error, nyb) {
+
+    //console.log(nyb)
+
+    var projection = d3.geo.mercator()
+                    //.center([-73.94, 40.70])
+                    //.scale(50000)
+                    .center([-73.97, 40.72])
+                    .scale(250000)
+                    .translate([(width) / 2, (height)/2]);
+
+    var path = d3.geo.path()
+            .projection(projection);
+
+    var g = svg.append("g");
+
+    g.append("g")
+        .attr("id", "boroughs")
+        .selectAll(".state")
+        .data(nyb.features)
+        .enter().append("path")
+        .attr("class", function(d){ return d.properties.name; })
+        .attr("d", path);
+
+      // var text = svg.append("svg:text")
+      //     .attr("x", 20)
+      //     .attr("y", 20);
+
+      var start = Date.now(),
+          frames = 0;
+
+      d3.timer(function() 
+      {
+
+        // Update the FPS meter.
+        var now = Date.now(), duration = now - start;
+        //text.text(~~(++frames * 1000 / duration));
+        if (duration >= 1000) {
+          frames = 0;
+          start = now;
+          $.ajax({
+            type: "GET",
+            url: "http://localhost:3012/trip/2014-07-01 00:00:04",
+            dataType: "json"
+          }).done (function (data) {
+            var station_array = data.stations;
+            var circle = svg.selectAll("circle")
+            .data([JSON.parse(data)])//need to put it in an array?
+          .enter().append("svg:circle")
+            .attr("r", 1)
+            .attr("fill","#f39c12")
+            .attr("opacity",".5")
+
+            var start_blip = Date.now();
+            d3.timer(function() 
+            {
+              var blip_now = Date.now(), blip_duration = blip_now - start_blip;
+              circle
+              .attr("cx", function(d) {point = projection([d.longitude,d.latitude]); return point[0] })
+              .attr("cy", function(d) {point = projection([d.longitude,d.latitude]); return point[1] })
+              .attr("r",function(d)
+              {
+                return (d.y < 10000) ? d3.select(this).attr("r") : blip_duration/1000;
+              });
+              if (blip_duration > 10000) {
+                circle.remove()
+                return true;
+              }
+            });
+
+
+          });
+        }
+    
+    });
+
+  });
+
+
+  </script>
+</body>
+</html>
