@@ -32,8 +32,8 @@ app.get('/trip/:time', function(req, res){
 app.get('/load', function(req, res){
   stream.on('data', function(line) {
     var arr = line.split(',');
-    var date = arr[1].replace(/(^"|"$)/g, '');
-    var coords = { latitude: arr[5].replace(/(^"|"$)/g, ''), longitude: arr[6].replace(/(^"|"$)/g, '') };
+    var date = arr[1];
+    var coords = { latitude: arr[3], longitude: arr[4] };
     client.set(date, JSON.stringify(coords), redis.print);
   });
 });
