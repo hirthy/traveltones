@@ -25,7 +25,6 @@ app.all('/trip/*', function(req, res, next) {
 
 app.get('/trip/:time', function(req, res){
   client.get(req.params.time, function (err, reply) {
-    console.log(reply.toString());
     res.json(reply);
   });
 });
