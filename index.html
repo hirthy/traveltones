@@ -15,10 +15,52 @@ body {
 
 <script src="d3.min.js" charset="utf-8"></script>
 <script src="jquery-1.11.2.min.js" charset="utf-8"></script>
+<script type="text/javascript" src="http://cdn.tonejs.org/latest/Tone.min.js"></script>
+
 
 <body>
 
   <script>
+
+ 
+  var sampler = new Tone.Sampler({
+    "samples" : {
+      "intro" : "./samples/spotify/Spotify Hack_Intro.mp3",
+      "arp1" : "./samples/spotify/Spotify Hack_Arp_1.mp3",
+      "arp2" : "./samples/spotify/Spotify Hack_Arp_2.mp3",
+      "bass1" : "./samples/spotify/Spotify Hack_Bass_1.mp3",
+      "bass2" : "./samples/spotify/Spotify Hack_Bass_2.mp3",
+      "bass3" : "./samples/spotify/Spotify Hack_Bass_3.mp3",
+      "boop1" : "./samples/spotify/Spotify Hack_Boop_1.mp3",
+      "field1" : "./samples/spotify/Spotify Hack_Field_1.mp3",
+      "field2" : "./samples/spotify/Spotify Hack_Field_2.mp3",
+      "hat1" : "./samples/spotify/Spotify Hack_Hat_1.mp3",
+      "hat2" : "./samples/spotify/Spotify Hack_Hat_2.mp3",
+      "hat3" : "./samples/spotify/Spotify Hack_Hat_3.mp3",
+      "kick1" : "./samples/spotify/Spotify Hack_Kick_1.mp3",
+      "kick2" : "./samples/spotify/Spotify Hack_Kick_2.mp3",
+      "kickalt" : "./samples/spotify/Spotify Hack_Kick_Alt.mp3",
+      "switch1" : "./samples/spotify/Spotify Hack_Switch.mp3",
+      "switch2" : "./samples/spotify/Spotify Hack_Switch_2.mp3",
+      "synth1" : "./samples/spotify/Spotify Hack_Synth_1.mp3",
+      "synth2" : "./samples/spotify/Spotify Hack_Synth_2.mp3",
+      "synth3" : "./samples/spotify/Spotify Hack_Synth_3.mp3",
+      "synth4" : "./samples/spotify/Spotify Hack_Synth_4.mp3",
+    }
+  }).toMaster();
+
+  
+  Tone.Buffer.onload = function(){
+    console.log("loaded");
+    sampler.triggerAttack("samples.intro");
+    
+
+  };
+
+  Tone.Buffer.onprogress = function(progress){
+    console.log("progress", progress);
+  };
+
 
   var width = 960,
      height = 500;
@@ -63,6 +105,7 @@ body {
       var start = Date.now(),
           frames = 0;
 
+
       d3.timer(function() 
       {
 
@@ -77,6 +120,7 @@ body {
             url: "http://localhost:3012/trip/2014-07-01 00:00:04",
             dataType: "json"
           }).done (function (data) {
+
             var station_array = data.stations;
             var circle = svg.selectAll("circle")
             .data([JSON.parse(data)])//need to put it in an array?
@@ -85,21 +129,45 @@ body {
             .attr("fill","#eb1e32")
             .attr("opacity","1")
 
+            
             var start_blip = Date.now();
+
+            Tone.Buffer.onload = function(){
+              console.log("loaded");
+              sampler.triggerAttack("samples.bass1");
+              
+
+            };
+
+            Tone.Buffer.onprogress = function(progress){
+              console.log("progress", progress);
+            };
+
+            
+        
+
             d3.timer(function() 
             {
+
+
+
               var blip_now = Date.now(), blip_duration = blip_now - start_blip;
               circle
               .attr("cx", function(d) {point = projection([d.longitude,d.latitude]); return point[0] })
               .attr("cy", function(d) {point = projection([d.longitude,d.latitude]); return point[1] })
               .attr("r",function(d)
               {
-                return (d.y < 1000) ? d3.select(this).attr("r") : blip_duration/100;
+                return blip_duration/100;
               });
               if (blip_duration > 1000) {
+
+              
                 circle.remove()
                 return true;
               }
+
+
+
             });
 
 
@@ -109,7 +177,6 @@ body {
     });
 
   });
-
 
   </script>
 </body>
