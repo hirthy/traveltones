@@ -24,7 +24,7 @@ app.all('/trip/*', function(req, res, next) {
  });
 
 app.get('/trip/:time', function(req, res){
-  client.get(req.params.time, function (err, reply) {
+  client.hgetall(req.params.time, function (err, reply) {
     res.json(reply);
   });
 });
@@ -32,9 +32,11 @@ app.get('/trip/:time', function(req, res){
 app.get('/load', function(req, res){
   stream.on('data', function(line) {
     var arr = line.split(',');
+    var id = arr[0];
     var date = arr[1];
     var coords = { latitude: arr[3], longitude: arr[4] };
-    client.set(date, JSON.stringify(coords), redis.print);
+    //client.set(date, JSON.stringify(coords), redis.print);
+    client.hset(date, id, JSON.stringify(coords), redis.print);
   });
 });
  

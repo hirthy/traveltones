@@ -71,9 +71,9 @@ html, body {
         .attr("class", function(d){ return d.properties.name; })
         .attr("d", path);
 
-      // var text = svg.append("svg:text")
-      //     .attr("x", 20)
-      //     .attr("y", 20);
+      var text = svg.append("svg:text")
+          .attr("x", 20)
+          .attr("y", 20);
 
       var start = Date.now(),
           frames = 0;
@@ -82,7 +82,7 @@ html, body {
       var current_timestamp = current_time.getTime();
 
       var millisecond = 100000;
-      var stations = new Array();
+      //var stations = new Array();
 
       d3.timer(function() 
       {
@@ -100,10 +100,14 @@ html, body {
             url: "http://localhost:3012/trip/" + datesplice.format("m-d-yy H:MM").toString(),
             dataType: "json"
           }).done (function (data) {
+            var blips = [];
+            $.each(data, function(index, value) {
+                blips.push(JSON.parse(value));
+            }); 
             if(data) {
-              stations.push(JSON.parse(data));
+              //stations.push(JSON.parse(data));
               var circle = svg.selectAll("circle")
-              .data(stations)//need to put it in an array?
+              .data(blips)//need to put it in an array?
             .enter().append("svg:circle")
               .attr("r", 1)
               .attr("fill","#eb1e32")
