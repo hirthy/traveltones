@@ -1,6 +1,3 @@
-var Citibike = require('citibike')
-  , citibike = new Citibike;
-
 var express = require('express');
 var app     = express();
 
