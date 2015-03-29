@@ -1,0 +1,24 @@
+{
+  "name": "CitiBach",
+  "version": "1.0.0",
+  "description": "Hear music generated from CitiBike usage over a day.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hirthy/traveltones.git"
+  },
+  "keywords": [
+    "music",
+    "data",
+    "visualization"
+  ],
+  "author": "Mike Hirth, Noamme Elisha, Peter Taylor-Brown, Myles Potters, Kate Ladenheim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hirthy/traveltones/issues"
+  },
+  "homepage": "https://github.com/hirthy/traveltones"
+}
