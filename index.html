@@ -11,6 +11,15 @@ html, body {
   margin: 0px;
 }
 
+@font-face {
+    font-family: font;
+    src: url(GOTHMBOL.TTF);
+}
+  svg{
+    font-family: font, fallBackFonts, sans-serif;
+    font-size: 72px;
+}
+
 #boroughs {
   fill: #0f1932;
 }
@@ -88,7 +97,7 @@ html, body {
       var projection = d3.geo.mercator()
                       //.center([-73.94, 40.70])
                       //.scale(50000)
-                      .center([-73.97, 40.72])
+                      .center([-73.97, 40.73])
                       .scale(300000)
                       .translate([(width) / 2, (height)/2]);
 
@@ -114,7 +123,14 @@ html, body {
         var millisecond = 100000;
         //var stations = new Array();
 
+        var titletext = svg.append("text")
+                .attr("x", 70)
+                .attr("y", 100)
+                .attr("fill","#eb1e32")
+                .text("CITIBach");
+
         setTimeout(function(){
+          titletext.remove();
 
           sampler.triggerAttackRelease("samples.kickalt",1);
 
@@ -135,6 +151,18 @@ html, body {
                 dataType: "json"
               }).done (function (data) {
 
+                var timetext = svg.append("text")
+                .attr("x", 70)
+                .attr("y", 100)
+                .attr("fill","#eb1e32")
+                .text(datesplice.format("H:MM").toString());
+
+                var timedesc = svg.append("text")
+                .attr("x", 250)
+                .attr("y", 100)
+                .attr("fill","#eb1e32")
+                .text("AM");
+
                 if(data) {
                   var blips = [];
                   var num_blips = Object.keys(data).length;
@@ -151,7 +179,7 @@ html, body {
 
                   var start_blip = Date.now();
                   if (num_blips < 1){
-
+                    sampler.triggerRelease();
                   } else if(num_blips < 32) {
                     sampler.triggerAttackRelease("samples.bass1",1);
                     sampler.triggerAttackRelease("samples.field1",1);
@@ -198,6 +226,8 @@ html, body {
                     });
                     if (blip_duration > 1000) {
                       circle.remove();
+                      timetext.remove();
+                      timedesc.remove();
                       return true;
                     }
                   });
