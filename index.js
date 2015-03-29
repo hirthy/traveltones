@@ -12,6 +12,8 @@ if (process.env.REDISTOGO_URL) {
 
 var fs = require('fs'),
     byline = require('byline');
+
+app.use(express.static(__dirname + "/"));
  
 var stream = byline(fs.createReadStream('bike_data.csv', { encoding: 'utf8' }));
 redis.on("error", function (err) {
