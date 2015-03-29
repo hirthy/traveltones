@@ -147,7 +147,7 @@ html, body {
               start = now;
               $.ajax({
                 type: "GET",
-                url: "http://localhost:3012/trip/" + datesplice.format("m-d-yy H:MM").toString(),
+                url: "/trip/" + datesplice.format("m-d-yy H:MM").toString(),
                 dataType: "json"
               }).done (function (data) {
 
@@ -236,7 +236,8 @@ html, body {
           }
         });
 
-      }, 11000);
+      //}, 11000);
+      }, 0);
     
     });
 

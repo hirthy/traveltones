@@ -1,8 +1,9 @@
 var express = require('express');
 var app     = express();
+var path    = require('path');
 
 var redis = require("redis")
-  , client = redis.createClient();
+ , client = redis.createClient();
 
 var fs = require('fs'),
     byline = require('byline');
@@ -12,13 +13,9 @@ client.on("error", function (err) {
   console.log("Error " + err);
 });
 
-app.use(express.static(__dirname));
-
-app.all('/trip/*', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  next();
- });
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/index.html'));
+});
 
 app.get('/trip/:time', function(req, res){
   client.hgetall(req.params.time, function (err, reply) {
@@ -32,10 +29,9 @@ app.get('/load', function(req, res){
     var id = arr[0];
     var date = arr[1];
     var coords = { latitude: arr[3], longitude: arr[4] };
-    //client.set(date, JSON.stringify(coords), redis.print);
     client.hset(date, id, JSON.stringify(coords), redis.print);
   });
 });
  
-app.listen(3012);
+app.listen(process.env.PORT || 3000);
 
