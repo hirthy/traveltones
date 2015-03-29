@@ -4,19 +4,17 @@ var path    = require('path');
 
 if (process.env.REDISTOGO_URL) {
   var rtg   = require("url").parse(process.env.REDISTOGO_URL);
-  var redis = require("redis");
-  var client = redis.createClient(rtg.port, rtg.hostname);
+  var redis = require("redis").createClient(rtg.port, rtg.hostname);
   redis.auth(rtg.auth.split(":")[1]);
 } else {
-  var redis = require("redis")
-   , client = redis.createClient();
+  var redis = require("redis").createClient();
 }
 
 var fs = require('fs'),
     byline = require('byline');
  
 var stream = byline(fs.createReadStream('bike_data.csv', { encoding: 'utf8' }));
-client.on("error", function (err) {
+redis.on("error", function (err) {
   console.log("Error " + err);
 });
 
@@ -25,7 +23,7 @@ app.get('/', function(req, res) {
 });
 
 app.get('/trip/:time', function(req, res){
-  client.hgetall(req.params.time, function (err, reply) {
+  redis.hgetall(req.params.time, function (err, reply) {
     res.json(reply);
   });
 });
@@ -36,7 +34,7 @@ app.get('/load', function(req, res){
     var id = arr[0];
     var date = arr[1];
     var coords = { latitude: arr[3], longitude: arr[4] };
-    client.hset(date, id, JSON.stringify(coords), redis.print);
+    redis.hset(date, id, JSON.stringify(coords), redis.print);
   });
 });
  
