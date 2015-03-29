@@ -20,5 +20,13 @@
   "bugs": {
     "url": "https://github.com/hirthy/traveltones/issues"
   },
-  "homepage": "https://github.com/hirthy/traveltones"
+  "homepage": "https://github.com/hirthy/traveltones",
+  "dependencies": {
+    "express": "~4.12.x",
+    "redis": "~0.12.x",
+    "byline": "~4.2.x"
+  },
+  "engines": {
+    "node": "0.12.x"
+  },
 }
